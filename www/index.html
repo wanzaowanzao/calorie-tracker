@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>热量计算器</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen pb-24">
+
+<input type="file" id="quickFoodImportInput" class="hidden-file-input" accept=".txt">
+<input type="file" id="historyImportInput" class="hidden-file-input" accept=".txt">
+
+<div id="toastContainer" class="fixed top-4 left-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+<div id="dayChangeToast" class="fixed top-0 left-0 right-0 z-50 bg-emerald-600 text-white px-4 py-3 text-sm font-medium text-center hidden day-change-toast">
+  <span id="dayChangeText">🌅 新的一天已开启，昨日数据已自动归档</span>
+</div>
+
+<div id="setupModal" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 hidden">
+  <div class="bg-white rounded-2xl w-full max-w-md p-6 card-shadow">
+    <h2 class="text-xl font-bold mb-1 text-gray-900">欢迎使用</h2>
+    <p class="text-sm text-gray-500 mb-5">首次使用请先录入基础身材信息</p>
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-3">
+        <label class="cursor-pointer">
+          <input type="radio" name="gender" value="male" class="peer hidden" checked>
+          <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all-300">
+            <div class="text-2xl mb-1">♂</div><div class="text-sm font-medium">男性</div>
+          </div>
+        </label>
+        <label class="cursor-pointer">
+          <input type="radio" name="gender" value="female" class="peer hidden">
+          <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition-all-300">
+            <div class="text-xl mb-1">♀</div><div class="text-xs font-medium">女性</div>
+          </div>
+        </label>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">身高 (cm)</label><input id="setupHeight" type="number" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="168"></div>
+        <div><label class="block text-xs font-medium text-gray-500 mb-1">体重 (kg)</label><input id="setupWeight" type="number" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="75"></div>
+      </div>
+      <div><label class="block text-xs font-medium text-gray-500 mb-1">年龄 (岁)</label><input id="setupAge" type="number" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="25"></div>
+    </div>
+    <button data-action="save-profile" class="mt-6 w-full bg-gray-900 text-white rounded-xl py-3 text-sm font-semibold hover:bg-gray-800 transition-all-300">保存并开始使用</button>
+  </div>
+</div>
+
+<div id="pageHome" class="page active">
+  <div class="bg-white border-b border-gray-100 sticky top-0 z-30">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div><h1 class="text-lg font-bold text-gray-900 leading-tight">热量计算器</h1><p class="text-xs text-gray-400 mt-0.5" id="currentDate">--</p></div>
+    </div>
+  </div>
+  <div class="max-w-2xl mx-auto px-4 pt-4 space-y-4">
+    <div class="bg-white rounded-2xl p-4 card-shadow flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-bold" id="avatarText">?</div>
+        <div>
+          <div class="text-sm font-semibold text-gray-900" id="profileSummary">--</div>
+          <div class="flex items-center gap-2 mt-0.5"><span class="text-xs text-gray-500">BMR: <span id="bmrDisplay">--</span> kcal</span><span id="statusBadge" class="text-xs px-2 py-0.5 rounded-full font-medium"></span></div>
+        </div>
+      </div>
+      <div class="text-right"><div class="text-xs text-gray-400">公式</div><div class="text-xs font-medium text-gray-600">Mifflin-St Jeor</div></div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-white rounded-2xl p-4 card-shadow"><div class="text-xs text-gray-400 mb-1">① 今日允许摄入</div><div class="text-2xl font-bold text-gray-900 tracking-tight" id="valAllow">0</div><div class="text-xs text-gray-400 mt-1">kcal</div></div>
+      <div class="bg-white rounded-2xl p-4 card-shadow"><div class="text-xs text-gray-400 mb-1">② 今日已吃热量</div><div class="text-2xl font-bold text-gray-900 tracking-tight" id="valEaten">0</div><div class="text-xs text-gray-400 mt-1">kcal</div></div>
+      <div class="bg-white rounded-2xl p-4 card-shadow"><div class="text-xs text-gray-400 mb-1">③ 剩余可摄入</div><div class="text-2xl font-bold tracking-tight transition-all-300" id="valRemain">0</div><div class="text-xs text-gray-400 mt-1">kcal</div></div>
+      <div class="bg-white rounded-2xl p-4 card-shadow"><div class="text-xs text-gray-400 mb-1">④ 目标缺口达成</div><div class="text-2xl font-bold tracking-tight transition-all-300" id="valGap">0</div><div class="text-xs text-gray-400 mt-1" id="gapLabel">--</div></div>
+    </div>
+    <div class="bg-white rounded-2xl p-4 card-shadow">
+      <div class="text-xs text-gray-400 mb-3">📊 今日营养汇总</div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex items-center justify-between"><span class="text-sm text-gray-600">💪 蛋白质</span><span class="text-sm font-bold text-emerald-600"><span id="totalProtein">0</span> g</span></div>
+        <div class="flex items-center justify-between"><span class="text-sm text-gray-600">🍚 碳水化合物</span><span class="text-sm font-bold text-amber-600"><span id="totalCarbs">0</span> g</span></div>
+      </div>
+    </div>
+    <div id="tipBox" class="rounded-2xl p-4 text-sm transition-all-300 hidden"><div class="font-medium mb-1" id="tipTitle"></div><div class="opacity-90" id="tipDesc"></div></div>
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between"><div class="flex items-center gap-2"><span class="text-lg">🏃</span><span class="text-sm font-semibold text-gray-900">运动消耗</span></div><div class="text-xs bg-gray-100 px-2 py-1 rounded-md text-gray-600">折算 75% 计入</div></div>
+      <div class="px-4 py-3">
+        <div class="flex gap-2 mb-3">
+          <input id="exName" type="text" class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="运动名称">
+          <input id="exCal" type="number" class="w-24 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="消耗 kcal">
+          <button data-action="add-exercise" class="bg-gray-900 text-white rounded-xl px-4 py-2 text-sm font-medium hover:bg-gray-800 transition-all-300">添加</button>
+        </div>
+        <div id="exerciseList" class="space-y-2 max-h-40 overflow-y-auto"></div>
+        <div class="mt-3 pt-3 border-t border-gray-50 space-y-1 text-sm">
+          <div class="flex justify-between items-center"><span class="text-gray-500">原始运动消耗</span><span class="font-medium text-gray-600"><span id="rawExercise">0</span> kcal</span></div>
+          <div class="flex justify-between items-center"><span class="text-gray-500">折算后计入</span><span class="font-bold text-gray-900"><span id="totalExercise">0</span> kcal</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between"><div class="flex items-center gap-2"><span class="text-lg">🍽️</span><span class="text-sm font-semibold text-gray-900">三餐打卡</span></div><div class="text-xs text-gray-400">已吃 <span id="totalEaten">0</span> kcal</div></div>
+      <div class="divide-y divide-gray-50" id="mealsContainer"></div>
+    </div>
+    <div class="bg-gray-100 rounded-2xl p-4 text-xs text-gray-500 space-y-1">
+      <div class="font-medium text-gray-700 mb-2">计算公式说明</div>
+      <div>BMR（男）= 10×体重 + 6.25×身高 - 5×年龄 + 5</div>
+      <div>BMR（女）= 10×体重 + 6.25×身高 - 5×年龄 - 161</div>
+      <div>BMR×1.2 = 轻活动日常消耗</div>
+      <div id="formulaLine">允许摄入 = (BMR×1.2) - 200 + 运动折算</div>
+      <div id="formulaTip">💡 目标缺口200kcal，温和减脂</div>
+    </div>
+  </div>
+</div>
+
+<div id="pageVisual" class="page">
+  <div class="bg-white border-b border-gray-100 sticky top-0 z-30"><div class="max-w-2xl mx-auto px-4 py-3"><h1 class="text-lg font-bold text-gray-900 leading-tight">直观显示</h1><p class="text-xs text-gray-400 mt-0.5">营养摄入可视化</p></div></div>
+  <div class="max-w-2xl mx-auto px-4 pt-4 space-y-4">
+    <div class="bg-white rounded-2xl card-shadow p-2 flex gap-2">
+      <button data-action="switch-visual" data-tab="calories" id="visualTabCalories" class="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all-300 bg-gray-900 text-white">🔥 热量</button>
+      <button data-action="switch-visual" data-tab="protein" id="visualTabProtein" class="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all-300 bg-gray-100 text-gray-600 hover:bg-gray-200">💪 蛋白质</button>
+      <button data-action="switch-visual" data-tab="carbs" id="visualTabCarbs" class="flex-1 py-2.5 rounded-xl text-sm font-medium transition-all-300 bg-gray-100 text-gray-600 hover:bg-gray-200">🍚 碳水</button>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow p-6">
+      <div class="flex justify-center mb-6"><canvas id="pieChart" width="280" height="280"></canvas></div>
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div class="bg-gray-50 rounded-xl p-3"><div class="text-xs text-gray-400 mb-1">建议摄入</div><div class="text-lg font-bold text-gray-900" id="visualSuggested">0</div><div class="text-xs text-gray-400" id="visualUnit">kcal</div></div>
+        <div class="bg-gray-50 rounded-xl p-3"><div class="text-xs text-gray-400 mb-1">已摄入</div><div class="text-lg font-bold text-gray-900" id="visualCurrent">0</div><div class="text-xs text-gray-400" id="visualUnit2">kcal</div></div>
+        <div class="bg-gray-50 rounded-xl p-3"><div class="text-xs text-gray-400 mb-1">剩余</div><div class="text-lg font-bold" id="visualRemaining">0</div><div class="text-xs text-gray-400" id="visualUnit3">kcal</div></div>
+      </div>
+      <div class="mt-4"><div class="flex justify-between text-xs text-gray-500 mb-1"><span>摄入进度</span><span id="visualPercent">0%</span></div><div class="h-3 bg-gray-100 rounded-full overflow-hidden"><div id="visualProgress" class="h-full rounded-full transition-all-300" style="width: 0%"></div></div></div>
+    </div>
+    <div class="bg-gray-100 rounded-2xl p-4 text-xs text-gray-500"><div class="font-medium text-gray-700 mb-2">💡 营养建议依据</div><div id="visualAdvice">--</div></div>
+  </div>
+</div>
+
+<div id="pageCalendar" class="page">
+  <div class="bg-white border-b border-gray-100 sticky top-0 z-30"><div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between"><div><h1 class="text-lg font-bold text-gray-900 leading-tight">打卡日历</h1><p class="text-xs text-gray-400 mt-0.5" id="calendarMonth">--</p></div><div class="flex gap-2"><button data-action="change-month" data-delta="-1" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm transition-all-300">‹</button><button data-action="change-month" data-delta="1" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm transition-all-300">›</button></div></div></div>
+  <div class="max-w-2xl mx-auto px-4 pt-4 space-y-4">
+    <div class="calendar-grid mb-1">
+      <div class="text-center text-xs font-medium text-gray-400 py-1">日</div><div class="text-center text-xs font-medium text-gray-400 py-1">一</div><div class="text-center text-xs font-medium text-gray-400 py-1">二</div><div class="text-center text-xs font-medium text-gray-400 py-1">三</div><div class="text-center text-xs font-medium text-gray-400 py-1">四</div><div class="text-center text-xs font-medium text-gray-400 py-1">五</div><div class="text-center text-xs font-medium text-gray-400 py-1">六</div>
+    </div>
+    <div id="calendarGrid" class="calendar-grid"></div>
+    <div id="dayDetail" class="bg-white rounded-2xl card-shadow p-4 hidden">
+      <div class="flex items-center justify-between mb-3"><div class="text-sm font-semibold text-gray-900" id="detailDate">--</div><div class="flex items-center gap-2"><div id="detailBadge" class="text-xs px-2 py-1 rounded-md font-medium"></div><button data-action="close-day-detail" class="text-gray-400 hover:text-gray-600 text-lg">✕</button></div></div>
+      <div class="grid grid-cols-2 gap-3 text-sm mb-4">
+        <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-400 mb-1">允许摄入</div><div class="font-bold text-gray-900" id="detailAllow">--</div></div>
+        <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-400 mb-1">已吃热量</div><div class="font-bold text-gray-900" id="detailEaten">--</div></div>
+        <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-400 mb-1">剩余</div><div class="font-bold" id="detailRemain">--</div></div>
+        <div class="bg-gray-50 rounded-lg p-3"><div class="text-xs text-gray-400 mb-1">缺口达成</div><div class="font-bold" id="detailGap">--</div></div>
+      </div>
+      <div id="historyEditSection" class="hidden">
+        <div class="border-t border-gray-100 pt-4 mb-4">
+          <div class="text-xs font-medium text-gray-500 mb-3">✏️ 补充历史数据</div>
+          <div class="mb-4"><div class="text-xs font-medium text-gray-600 mb-2">🏃 运动消耗</div><div class="flex gap-2 mb-2"><input id="historyExName" type="text" class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="运动名称"><input id="historyExCal" type="number" class="w-20 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="kcal"><button data-action="add-history-exercise" class="bg-gray-900 text-white rounded-xl px-3 py-2 text-sm font-medium hover:bg-gray-800 transition-all-300">+</button></div><div id="historyExerciseList" class="space-y-1 max-h-24 overflow-y-auto"></div></div>
+          <div id="historyMealsContainer" class="space-y-3"></div>
+        </div>
+      </div>
+      <div id="detailMeals" class="space-y-2 text-sm"></div>
+    </div>
+  </div>
+</div>
+
+<div id="pageSettings" class="page">
+  <div class="bg-white border-b border-gray-100 sticky top-0 z-30"><div class="max-w-2xl mx-auto px-4 py-3"><h1 class="text-lg font-bold text-gray-900 leading-tight">设置</h1><p class="text-xs text-gray-400 mt-0.5">管理个人信息、常用食物与数据</p></div></div>
+  <div class="max-w-2xl mx-auto px-4 pt-4 space-y-4">
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-50"><span class="text-sm font-semibold text-gray-900">👤 个人基础信息</span></div>
+      <div class="px-4 py-4 space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <label class="cursor-pointer"><input type="radio" name="settingGender" value="male" class="peer hidden"><div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all-300"><div class="text-xl mb-1">♂</div><div class="text-xs font-medium">男性</div></div></label>
+          <label class="cursor-pointer"><input type="radio" name="settingGender" value="female" class="peer hidden"><div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition-all-300"><div class="text-xl mb-1">♀</div><div class="text-xs font-medium">女性</div></div></label>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div><label class="block text-xs font-medium text-gray-500 mb-1">身高 (cm)</label><input id="settingHeight" type="number" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+          <div><label class="block text-xs font-medium text-gray-500 mb-1">体重 (kg)</label><input id="settingWeight" type="number" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+          <div><label class="block text-xs font-medium text-gray-500 mb-1">年龄 (岁)</label><input id="settingAge" type="number" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+        </div>
+        <div class="pt-3 border-t border-gray-100"><label class="block text-xs font-medium text-gray-500 mb-2">当前状态</label><select id="settingStatus" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"><option value="daily">日常维持</option><option value="cutting">减脂期</option><option value="bulking">增肌期</option></select></div>
+        <button data-action="update-profile" class="w-full bg-gray-900 text-white rounded-xl py-3 text-sm font-semibold hover:bg-gray-800 transition-all-300">保存修改</button>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-50"><span class="text-sm font-semibold text-gray-900">⭐ 常用菜单</span></div>
+      <div class="px-4 py-4">
+        <div class="grid grid-cols-4 gap-2 mb-3">
+          <input id="quickFoodName" type="text" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="食物名称">
+          <input id="quickFoodPro" type="number" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="蛋白g/100g">
+          <input id="quickFoodCarb" type="number" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="碳水g/100g">
+          <input id="quickFoodCal" type="number" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="热量kcal/100g">
+        </div>
+        <button data-action="add-quick-food" class="w-full bg-gray-900 text-white rounded-xl py-2 text-sm font-medium hover:bg-gray-800 transition-all-300">添加到常用菜单</button>
+        <div id="quickFoodList" class="space-y-2 max-h-60 overflow-y-auto"><div class="text-sm text-gray-400 text-center py-4">暂无常用食物，请添加</div></div>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-50"><span class="text-sm font-semibold text-gray-900">📦 数据管理</span></div>
+      <div class="px-4 py-4 space-y-3">
+        <div class="border border-gray-100 rounded-xl p-3"><div class="text-xs font-medium text-gray-500 mb-2">常用饮食数据</div><div class="grid grid-cols-2 gap-2"><button data-action="export-quick-foods" class="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-all-300">📤 导出常用饮食数据</button><button data-action="trigger-quick-food-import" class="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-all-300">📥 导入常用饮食数据</button></div></div>
+        <div class="border border-gray-100 rounded-xl p-3"><div class="text-xs font-medium text-gray-500 mb-2">历史打卡数据</div><div class="grid grid-cols-2 gap-2"><button data-action="export-history" class="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-all-300">📤 历史数据迁出</button><button data-action="trigger-history-import" class="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-all-300">📥 历史数据迁入</button></div></div>
+        <div class="border border-red-100 rounded-xl p-3"><div class="text-xs font-medium text-red-500 mb-2">⚠️ 危险操作</div><div class="grid grid-cols-2 gap-2"><button data-action="clear-today" class="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-all-300">清空当日打卡数据</button><button data-action="reset-all" class="w-full bg-white border border-red-200 text-red-600 rounded-xl py-2.5 text-sm font-medium hover:bg-red-50 transition-all-300">重置所有基础信息</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40">
+  <div class="max-w-2xl mx-auto flex">
+    <button data-action="switch-page" data-page="home" id="tabHome" class="flex-1 py-3 text-sm font-medium tab-active flex flex-col items-center gap-0.5 transition-all-300"><span class="text-lg">📝</span><span>打卡</span></button>
+    <button data-action="switch-page" data-page="visual" id="tabVisual" class="flex-1 py-3 text-sm font-medium tab-inactive flex flex-col items-center gap-0.5 transition-all-300"><span class="text-lg">📊</span><span>直观显示</span></button>
+    <button data-action="switch-page" data-page="calendar" id="tabCalendar" class="flex-1 py-3 text-sm font-medium tab-inactive flex flex-col items-center gap-0.5 transition-all-300"><span class="text-lg">📅</span><span>日历</span></button>
+    <button data-action="switch-page" data-page="settings" id="tabSettings" class="flex-1 py-3 text-sm font-medium tab-inactive flex flex-col items-center gap-0.5 transition-all-300"><span class="text-lg">⚙️</span><span>设置</span></button>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">热量计算器</string>
+    <string name="title_activity_main">热量计算器</string>
+    <string name="package_name">com.diet.calc</string>
+    <string name="custom_url_scheme">com.diet.calc</string>
+</resources>

@@ -1,0 +1,17 @@
+{
+  "name": "calorie-tracker",
+  "version": "1.0.0",
+  "description": "热量计算器",
+  "main": "index.html",
+  "private": true,
+  "scripts": {
+    "build": "echo Build OK"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/browser": "^8.0.3",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0"
+  }
+}

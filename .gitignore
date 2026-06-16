@@ -1,0 +1,23 @@
+﻿# Node.js
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Android / Capacitor 构建产物（每次重新 npx cap sync 都会生成）
+android/.gradle/
+android/.idea/
+android/app/build/
+android/capacitor-android/build/
+android/capacitor-cordova-android-plugins/build/
+
+# 本地配置文件（每个人的路径不同）
+android/local.properties
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Gradle wrapper（可选上传，但如果你没把 gradle-wrapper.jar 放进去会报错）
+# 如果构建失败，取消下面注释
+# android/gradle/wrapper/gradle-wrapper.jar

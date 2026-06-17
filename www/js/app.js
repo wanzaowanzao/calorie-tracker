@@ -2,7 +2,6 @@
     'use strict';
 
     const STORAGE_KEY = 'calorie_tracker_v10';
-    const CLOUD_FOODS_KEY = 'calorie_tracker_cloud_foods_v1';
     const TARGET_DEFICIT = 200;
     const TARGET_BULKING = 250;
     const GREEN_THRESHOLD = 100;
@@ -10,8 +9,7 @@
     const BMR_MULTIPLIER = 1.2;
     const MEAL_TYPES = ['breakfast', 'lunch', 'dinner'];
     const MEAL_LABELS = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐' };
-    const CLOUD_FOODS_URL = 'data/cloud-foods.json';
-    const CLOUD_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+    const CLOUD_FOODS_URL = 'https://raw.githubusercontent.com/wanzaowanzao/calorie-tracker/master/www/data/cloud-foods.json';
 
     const STATUS_META = {
         daily: { label: '⚖️ 日常维持', badgeClass: 'text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600',
@@ -142,42 +140,6 @@
     }
     function getTodayData(data) { return data.history[getTodayStr()]; }
 
-    function loadCloudFoods() {
-        try {
-            const raw = localStorage.getItem(CLOUD_FOODS_KEY);
-            if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            const foods = Array.isArray(parsed) ? parsed : (parsed.foods || []);
-            return foods.length > 0 ? foods : null;
-        } catch (e) {
-            console.error('加载云端食品库失败:', e);
-            return null;
-        }
-    }
-    function loadCloudCacheMeta() {
-        try {
-            const raw = localStorage.getItem(CLOUD_FOODS_KEY + '_meta');
-            return raw ? JSON.parse(raw) : null;
-        } catch (e) { return null; }
-    }
-    function saveCloudCache(foods, meta) {
-        try {
-            localStorage.setItem(CLOUD_FOODS_KEY, JSON.stringify(foods));
-            localStorage.setItem(CLOUD_FOODS_KEY + '_meta', JSON.stringify(meta));
-            return true;
-        } catch (e) { showToast('保存食品库失败', 'error'); console.error(e); return false; }
-    }
-    function clearCloudCache() {
-        try {
-            localStorage.removeItem(CLOUD_FOODS_KEY);
-            localStorage.removeItem(CLOUD_FOODS_KEY + '_meta');
-        } catch (e) { console.error(e); }
-    }
-    function isCloudCacheFresh() {
-        const meta = loadCloudCacheMeta();
-        if (!meta || !meta.fetchedAt) return false;
-        return (Date.now() - meta.fetchedAt) < CLOUD_CACHE_TTL_MS;
-    }
     async function fetchCloudCategories() {
         try {
             const response = await fetch(CLOUD_FOODS_URL + '?_=' + Date.now(), { cache: 'no-store' });
@@ -198,12 +160,6 @@
     function getFoodsByCategory(categories, categoryName) {
         const cat = categories.find(c => c.name === categoryName);
         return cat ? cat.foods.map(f => ({ ...f, category: categoryName })) : [];
-    }
-    function initCloudFoodsState() {
-        state.cloudCategories = [];
-        state.currentCategoryFoods = [];
-        state.selectedCloudFoodIds = new Set();
-        state.downloadedCloudFoodIds = new Set();
     }
 
     function calcBMR(profile) {
@@ -441,72 +397,6 @@
         state.selectedCloudFoodIds.clear();
         renderCloudFoodList();
         showToast(`成功下载 ${added} 项到常用菜单${skipped > 0 ? `（跳过重复${skipped}项）` : ''}`, 'success');
-    }
-
-    function addCustomCloudFood() {
-        const name = document.getElementById('addCloudFoodName').value.trim();
-        const category = document.getElementById('addCloudFoodCategory').value;
-        const protein = Number(document.getElementById('addCloudFoodProtein').value) || 0;
-        const carb = Number(document.getElementById('addCloudFoodCarb').value) || 0;
-        const cal = Number(document.getElementById('addCloudFoodCal').value) || 0;
-        if (!name) { showToast('请输入食物名称', 'warning'); return; }
-        if (cal <= 0) { showToast('请输入热量值', 'warning'); return; }
-        const food = { id: 'custom_' + Date.now(), name, protein, carb, caloriesPer100g: cal, category, unit: '100g' };
-        state.cloudFoods.push(food);
-        saveCloudCache(state.cloudFoods, { fetchedAt: Date.now(), version: 'custom' });
-        ['addCloudFoodName', 'addCloudFoodProtein', 'addCloudFoodCarb', 'addCloudFoodCal'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-        renderCloudCategoryTabs();
-        renderCloudFoodList();
-        const stats = document.getElementById('cloudFoodStats');
-        if (stats) stats.textContent = `共 ${state.cloudFoods.length} 种食物 · ✍️ 含本地自定义`;
-        showToast(`已添加「${name}」到系统食品库`, 'success');
-    }
-
-    function exportCloudFoodsJson() {
-        const content = JSON.stringify(state.cloudFoods, null, 2);
-        downloadFile(content, `系统食品库_${getTodayStr()}.json`, 'application/json');
-        showToast(`已导出 ${state.cloudFoods.length} 项食品数据`, 'success');
-    }
-
-    function triggerCloudFoodImport() {
-        const el = document.getElementById('cloudFoodImportInput');
-        if (el) el.click();
-        else showToast('请在浏览器中访问云端食品库', 'info');
-    }
-
-    function importCloudFoodsFromJson(content) {
-        try {
-            const foods = JSON.parse(content);
-            let flat = [];
-            if (Array.isArray(foods)) flat = foods;
-            else if (foods.categories) foods.categories.forEach(cat => { (cat.foods || []).forEach(f => flat.push({ ...f, category: cat.name })); });
-            const valid = flat.filter(f => f && f.name && f.caloriesPer100g);
-            if (valid.length === 0) { showToast('未找到有效的食物数据', 'error'); return; }
-            state.cloudFoods = valid.map((f, i) => ({
-                id: f.id || 'import_' + Date.now() + '_' + i,
-                name: f.name,
-                protein: Number(f.protein) || 0,
-                carb: Number(f.carb) || 0,
-                caloriesPer100g: Number(f.caloriesPer100g) || 0,
-                category: f.category || '家常中餐',
-                unit: f.unit || '100g'
-            }));
-            saveCloudCache(state.cloudFoods, { fetchedAt: Date.now(), version: 'import' });
-            renderCloudCategoryTabs();
-            renderCloudFoodList();
-            showToast(`成功导入 ${state.cloudFoods.length} 项食品数据`, 'success');
-        } catch (e) { showToast('文件解析失败：' + e.message, 'error'); }
-    }
-
-    function resetCloudFoods() {
-        showConfirm('确定重置食品库吗？将清除本地缓存并重新从云端同步。', () => {
-            clearCloudCache();
-            state.selectedCloudFoodIds.clear();
-            state.downloadedCloudFoodIds.clear();
-            state.cloudFoodFilterCategory = '';
-            state.cloudFoodSearchKeyword = '';
-            loadAndRenderCloudFoods(true);
-        });
     }
 
     function buildMealSection(mealType, isHistory) {
@@ -1229,11 +1119,7 @@
             'change-month': (el) => changeMonth(parseInt(el.dataset.delta) || 0),
             'switch-page': (el) => switchPage(el.dataset.page),
             'switch-visual': (el) => switchVisualTab(el.dataset.tab),
-            'download-selected-cloud-foods': () => downloadSelectedCloudFoods(),
-            'add-custom-cloud-food': () => addCustomCloudFood(),
-            'export-cloud-foods': () => exportCloudFoodsJson(),
-            'trigger-cloud-food-import': () => triggerCloudFoodImport(),
-            'reset-cloud-foods': () => resetCloudFoods()
+            'download-selected-cloud-foods': () => downloadSelectedCloudFoods()
         };
 
         document.body.addEventListener('click', (e) => {

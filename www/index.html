@@ -187,42 +187,6 @@
         </div>
       </div>
     </div>
-
-    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
-      <div class="px-4 py-3 border-b border-gray-50"><span class="text-sm font-semibold text-gray-900">✏️ 自定义添加到食品库</span></div>
-      <div class="px-4 py-4">
-        <div class="grid grid-cols-2 gap-2 mb-2">
-          <input id="addCloudFoodName" type="text" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="食物名称">
-          <select id="addCloudFoodCategory" class="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="沙县小吃">沙县小吃</option>
-            <option value="轻食沙拉">轻食沙拉</option>
-            <option value="家常中餐">家常中餐</option>
-            <option value="早餐食品">早餐食品</option>
-            <option value="快餐外卖">快餐外卖</option>
-            <option value="火锅烧烤">火锅烧烤</option>
-            <option value="水果饮料">水果饮料</option>
-            <option value="零食点心">零食点心</option>
-          </select>
-        </div>
-        <div class="grid grid-cols-3 gap-2 mb-2">
-          <input id="addCloudFoodProtein" type="number" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="蛋白g/100g">
-          <input id="addCloudFoodCarb" type="number" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="碳水g/100g">
-          <input id="addCloudFoodCal" type="number" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="热量kcal/100g">
-        </div>
-        <button data-action="add-custom-cloud-food" class="w-full bg-blue-600 text-white rounded-xl py-2 text-sm font-medium hover:bg-blue-700 transition-all-300">➕ 添加到系统食品库</button>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
-      <div class="px-4 py-3 border-b border-gray-50"><span class="text-sm font-semibold text-gray-900">📦 食品库数据管理</span></div>
-      <div class="px-4 py-4 space-y-2">
-        <div class="grid grid-cols-2 gap-2">
-          <button data-action="export-cloud-foods" class="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-all-300">📤 导出食品库JSON</button>
-          <button data-action="trigger-cloud-food-import" class="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-all-300">📥 导入食品库JSON</button>
-        </div>
-        <button data-action="reset-cloud-foods" class="w-full bg-amber-50 text-amber-700 rounded-xl py-2 text-sm font-medium hover:bg-amber-100 transition-all-300">🔄 重置为系统默认食品库</button>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -271,8 +235,6 @@
     </div>
   </div>
 </div>
-
-<input type="file" id="cloudFoodImportInput" class="hidden-file-input" accept=".json">
 
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40">
   <div class="max-w-2xl mx-auto flex">

@@ -156,6 +156,76 @@
   </div>
 </div>
 
+<div id="pageCloudfoods" class="page">
+  <div class="bg-white border-b border-gray-100 sticky top-0 z-30"><div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between"><div><h1 class="text-lg font-bold text-gray-900 leading-tight">云端食品库</h1><p class="text-xs text-gray-400 mt-0.5">选择分类浏览并下载食物到本地</p></div><button id="cloudFoodRefreshBtn" class="text-gray-400 hover:text-gray-600 transition-colors-300 p-1" title="刷新分类列表"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button></div></div>
+  <div class="max-w-2xl mx-auto px-4 pt-4 space-y-4">
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between">
+        <span class="text-sm font-semibold text-gray-900">📁 分类目录</span>
+        <span id="cloudFoodStats" class="text-xs text-gray-500">--</span>
+      </div>
+      <div id="cloudFoodCategoryList" class="p-4">
+        <div class="text-sm text-gray-400 text-center py-8">正在加载分类...</div>
+      </div>
+    </div>
+
+    <div id="cloudFoodDetailPanel" class="bg-white rounded-2xl card-shadow overflow-hidden hidden">
+      <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between">
+        <span id="detailCategoryName" class="text-sm font-semibold text-gray-900">🍽️ 食物列表</span>
+        <button id="backToCategories" class="text-xs text-blue-600 hover:text-blue-800 font-medium">← 返回目录</button>
+      </div>
+      <div class="px-4 py-3">
+        <div id="cloudFoodList" class="space-y-2 max-h-80 overflow-y-auto">
+          <div class="text-sm text-gray-400 text-center py-8">正在加载食物...</div>
+        </div>
+        <div class="mt-3 pt-3 border-t border-gray-50">
+          <div class="flex items-center justify-between mb-2">
+            <span id="selectedCount" class="text-xs text-gray-500">已选择 0 项</span>
+            <span id="downloadedCount" class="text-xs text-emerald-600">已下载 0 项到本地</span>
+          </div>
+          <button data-action="download-selected-cloud-foods" class="w-full bg-emerald-600 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-emerald-700 transition-all-300">⬇️ 下载选中食物到本地</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-50"><span class="text-sm font-semibold text-gray-900">✏️ 自定义添加到食品库</span></div>
+      <div class="px-4 py-4">
+        <div class="grid grid-cols-2 gap-2 mb-2">
+          <input id="addCloudFoodName" type="text" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="食物名称">
+          <select id="addCloudFoodCategory" class="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="沙县小吃">沙县小吃</option>
+            <option value="轻食沙拉">轻食沙拉</option>
+            <option value="家常中餐">家常中餐</option>
+            <option value="早餐食品">早餐食品</option>
+            <option value="快餐外卖">快餐外卖</option>
+            <option value="火锅烧烤">火锅烧烤</option>
+            <option value="水果饮料">水果饮料</option>
+            <option value="零食点心">零食点心</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-3 gap-2 mb-2">
+          <input id="addCloudFoodProtein" type="number" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="蛋白g/100g">
+          <input id="addCloudFoodCarb" type="number" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="碳水g/100g">
+          <input id="addCloudFoodCal" type="number" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="热量kcal/100g">
+        </div>
+        <button data-action="add-custom-cloud-food" class="w-full bg-blue-600 text-white rounded-xl py-2 text-sm font-medium hover:bg-blue-700 transition-all-300">➕ 添加到系统食品库</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl card-shadow overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-50"><span class="text-sm font-semibold text-gray-900">📦 食品库数据管理</span></div>
+      <div class="px-4 py-4 space-y-2">
+        <div class="grid grid-cols-2 gap-2">
+          <button data-action="export-cloud-foods" class="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-all-300">📤 导出食品库JSON</button>
+          <button data-action="trigger-cloud-food-import" class="w-full bg-white border border-gray-200 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50 transition-all-300">📥 导入食品库JSON</button>
+        </div>
+        <button data-action="reset-cloud-foods" class="w-full bg-amber-50 text-amber-700 rounded-xl py-2 text-sm font-medium hover:bg-amber-100 transition-all-300">🔄 重置为系统默认食品库</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="pageSettings" class="page">
   <div class="bg-white border-b border-gray-100 sticky top-0 z-30"><div class="max-w-2xl mx-auto px-4 py-3"><h1 class="text-lg font-bold text-gray-900 leading-tight">设置</h1><p class="text-xs text-gray-400 mt-0.5">管理个人信息、常用食物与数据</p></div></div>
   <div class="max-w-2xl mx-auto px-4 pt-4 space-y-4">
@@ -163,8 +233,8 @@
       <div class="px-4 py-3 border-b border-gray-50"><span class="text-sm font-semibold text-gray-900">👤 个人基础信息</span></div>
       <div class="px-4 py-4 space-y-4">
         <div class="grid grid-cols-2 gap-3">
-          <label class="cursor-pointer"><input type="radio" name="settingGender" value="male" class="peer hidden"><div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 transition-all-300"><div class="text-xl mb-1">♂</div><div class="text-xs font-medium">男性</div></div></label>
-          <label class="cursor-pointer"><input type="radio" name="settingGender" value="female" class="peer hidden"><div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-pink-500 peer-checked:bg-pink-50 peer-checked:text-pink-700 transition-all-300"><div class="text-xl mb-1">♀</div><div class="text-xs font-medium">女性</div></div></label>
+          <label class="cursor-pointer"><input type="radio" name="settingGender" value="male" class="peer hidden"><div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-blue-500 peer-checked:bg-blue-500 peer-checked:text-blue-700 transition-all-300"><div class="text-xl mb-1">♂</div><div class="text-xs font-medium">男性</div></div></label>
+          <label class="cursor-pointer"><input type="radio" name="settingGender" value="female" class="peer hidden"><div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-pink-500 peer-checked:bg-pink-500 peer-checked:text-pink-700 transition-all-300"><div class="text-xl mb-1">♀</div><div class="text-xs font-medium">女性</div></div></label>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div><label class="block text-xs font-medium text-gray-500 mb-1">身高 (cm)</label><input id="settingHeight" type="number" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
@@ -176,7 +246,10 @@
       </div>
     </div>
     <div class="bg-white rounded-2xl card-shadow overflow-hidden">
-      <div class="px-4 py-3 border-b border-gray-50"><span class="text-sm font-semibold text-gray-900">⭐ 常用菜单</span></div>
+      <div class="px-4 py-3 border-b border-gray-50 flex items-center justify-between">
+        <span class="text-sm font-semibold text-gray-900">⭐ 常用菜单</span>
+        <button data-action="switch-page" data-page="cloudfoods" class="text-xs text-blue-600 hover:text-blue-800 font-medium">🍴 打开云端食品库</button>
+      </div>
       <div class="px-4 py-4">
         <div class="grid grid-cols-4 gap-2 mb-3">
           <input id="quickFoodName" type="text" class="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="食物名称">
@@ -199,10 +272,12 @@
   </div>
 </div>
 
+<input type="file" id="cloudFoodImportInput" class="hidden-file-input" accept=".json">
+
 <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40">
   <div class="max-w-2xl mx-auto flex">
     <button data-action="switch-page" data-page="home" id="tabHome" class="flex-1 py-3 text-sm font-medium tab-active flex flex-col items-center gap-0.5 transition-all-300"><span class="text-lg">📝</span><span>打卡</span></button>
-    <button data-action="switch-page" data-page="visual" id="tabVisual" class="flex-1 py-3 text-sm font-medium tab-inactive flex flex-col items-center gap-0.5 transition-all-300"><span class="text-lg">📊</span><span>直观显示</span></button>
+    <button data-action="switch-page" data-page="visual" id="tabVisual" class="flex-1 py-3 text-sm font-medium tab-inactive flex flex-col items-center gap-0.5 transition-all-300"><span class="text-lg">📊</span><span>显示</span></button>
     <button data-action="switch-page" data-page="calendar" id="tabCalendar" class="flex-1 py-3 text-sm font-medium tab-inactive flex flex-col items-center gap-0.5 transition-all-300"><span class="text-lg">📅</span><span>日历</span></button>
     <button data-action="switch-page" data-page="settings" id="tabSettings" class="flex-1 py-3 text-sm font-medium tab-inactive flex flex-col items-center gap-0.5 transition-all-300"><span class="text-lg">⚙️</span><span>设置</span></button>
   </div>

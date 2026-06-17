@@ -1,8 +1,21 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updatedAt": "2026-06-17",
-  "totalCount": 52,
+  "totalCount": 60,
   "categories": [
+    {
+      "name": "常见减肥菜单",
+      "foods": [
+        { "id": "diet_001", "name": "水煮鸡蛋", "protein": 13, "carb": 1.1, "caloriesPer100g": 155, "unit": "100g" },
+        { "id": "diet_002", "name": "水煮鸡胸肉", "protein": 31, "carb": 0, "caloriesPer100g": 165, "unit": "100g" },
+        { "id": "diet_003", "name": "水煮西兰花", "protein": 2.8, "carb": 3.7, "caloriesPer100g": 35, "unit": "100g" },
+        { "id": "diet_004", "name": "水煮土豆", "protein": 2, "carb": 17, "caloriesPer100g": 87, "unit": "100g" },
+        { "id": "diet_005", "name": "水煮红薯", "protein": 1.6, "carb": 20, "caloriesPer100g": 99, "unit": "100g" },
+        { "id": "diet_006", "name": "水煮玉米", "protein": 3.3, "carb": 19, "caloriesPer100g": 96, "unit": "100g" },
+        { "id": "diet_007", "name": "水煮胡萝卜", "protein": 0.9, "carb": 8, "caloriesPer100g": 41, "unit": "100g" },
+        { "id": "diet_008", "name": "水煮菠菜", "protein": 2.9, "carb": 2, "caloriesPer100g": 24, "unit": "100g" }
+      ]
+    },
     {
       "name": "沙县小吃",
       "foods": [
